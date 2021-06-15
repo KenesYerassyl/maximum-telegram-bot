@@ -1,8 +1,9 @@
 from aiogram.types.reply_keyboard import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from pyasn1.type.base import Asn1ItemBase
 from sheets import check_user_id, get_user_scores
+from dotenv import load_dotenv
+from os import environ
 
-import config
 import logging 
 import messages
 
@@ -12,9 +13,11 @@ from aiogram.dispatcher import FSMContext
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
+load_dotenv()
+
 logging .basicConfig(level=logging.INFO)
 
-bot = Bot(token=config.BOT_TOKEN)
+bot = Bot(token=environ.get("BOT_TOKEN"))
 dp = Dispatcher(bot, storage=MemoryStorage())
 dp.middleware.setup(LoggingMiddleware())
 

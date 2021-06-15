@@ -1,17 +1,19 @@
 import psycopg2
-import config
-
+from dotenv import load_dotenv
+from os import environ
 from psycopg2 import pool
+
+load_dotenv()
 
 class DBController:
 
     def __init__(self) -> None:
         self.pool = pool.ThreadedConnectionPool(
             1, 1,
-            host = config.DB_HOST, 
-            database = config.DB_NAME,
-            user = config.DB_NAME,
-            password = config.DB_PASSWORD
+            host = environ.get("DB_HOST"), 
+            database = environ.get("DB_NAME"),
+            user = environ.get("DB_NAME"),
+            password = environ.get("DB_PASSWORD")
         )
     
     def does_chat_exist(self, chat_id):
