@@ -9,7 +9,7 @@ def get_creds():
         "type": environ.get("type"),
         "project_id": environ.get("project_id"),
         "private_key_id": environ.get("private_key_id"),
-        "private_key": environ.get("private_key").replace('\n', '\r'),
+        "private_key": environ.get("private_key").replace('\\n', '\n'),
         "client_email": environ.get("client_email"),
         "client_id": environ.get("client_id"),
         "auth_uri": environ.get("auth_uri"),
