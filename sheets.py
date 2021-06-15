@@ -1,0 +1,51 @@
+import os.path
+import config
+
+from db_controller import DBController
+from googleapiclient.discovery import build
+from google.oauth2 import service_account
+
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+SERVICE_ACCOUNT_FILE = os.path.join(BASE_DIR, 'cred.json')
+
+credentials = service_account.Credentials.from_service_account_info
+credentials = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+
+service = build('sheets', 'v4', credentials=credentials)
+
+sheet = service.spreadsheets()
+
+db = DBController()
+
+def get_user_scores(user_id):
+    result = sheet.values().get(spreadsheetId=config.SPREADSHEET_ID, range='01.06.2021!A2:A').execute()
+    values = result.get('values', [])
+    needed_row = -1
+    for row in range(len(values)):
+        if values[row][0] == user_id:
+            needed_row = row
+            break
+    needed_row += 2
+    result1 = sheet.values().get(spreadsheetId=config.SPREADSHEET_ID, range=f'01.06.2021!D{needed_row}:{needed_row}').execute()
+    scores = result1.get('values', [])
+    return scores[0]
+    
+
+def check_user_id(user_id, chat_id):
+    result = sheet.values().get(spreadsheetId=config.SPREADSHEET_ID, range='01.06.2021!A2:A').execute()
+    values = result.get('values', [])
+    needed_row = -1
+    for row in range(len(values)):
+        if values[row][0] == user_id:
+            needed_row = row
+            break
+    if needed_row == -1:
+        return False
+    else:
+        does_chat_exist = db.does_chat_exist(chat_id)
+        if does_chat_exist == False:
+            db.add_subscriber(chat_id, user_id)
+        else:
+            db.modify_user_id(chat_id, user_id)
+        return True
