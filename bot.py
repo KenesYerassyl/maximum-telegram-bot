@@ -1,3 +1,4 @@
+import datetime
 from aiogram.types.reply_keyboard import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from pyasn1.type.base import Asn1ItemBase
 from sheets import check_user_id, get_user_scores
@@ -6,6 +7,7 @@ from os import environ
 
 import logging 
 import messages
+import asyncio
 
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -49,6 +51,13 @@ def register_handlers(dp):
     dp.register_message_handler(start, commands=['start'], state='*')
     dp.register_message_handler(id_received, state=GetID.waiting_for_id)
 
+async def scheduled(wait_for):
+    while True:
+        await asyncio.sleep(wait_for)
+        now = datetime.utcnow()
+        await bot.send_message("Nigga you good tho!")
+
 if __name__ == '__main__':
+    dp.loop.create_task(scheduled(5))
     register_handlers(dp)
     executor.start_polling(dp, skip_updates=True)

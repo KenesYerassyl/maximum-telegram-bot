@@ -9,7 +9,7 @@ from credentials import get_creds
 
 load_dotenv()
 
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets/readonly']
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 credentials = service_account.Credentials.from_service_account_info(get_creds())
@@ -51,3 +51,9 @@ def check_user_id(user_id, chat_id):
         else:
             db.modify_user_id(chat_id, user_id)
         return True
+
+# ss = '1jswiL05K985fYXIT0ZqDaRp5jslBTcob0ubUj1ErY7c'
+
+# result = sheet.values().get(spreadsheetId=ss, range='Тест 2!B:B').execute()
+# values = result.get('values', [])
+# print(values)
