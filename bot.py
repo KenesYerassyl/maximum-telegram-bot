@@ -57,7 +57,7 @@ async def scheduled(wait_for):
         now = datetime.utcnow()
         await bot.send_message("Nigga you good tho!")
 
-if __name__ == '__main__':
-    dp.loop.create_task(scheduled(5))
+async def main():
     register_handlers(dp)
+    await asyncio.get_event_loop().create_task(scheduled(5))
     executor.start_polling(dp, skip_updates=True)
