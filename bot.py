@@ -1,6 +1,3 @@
-import datetime
-from aiogram.types.reply_keyboard import ReplyKeyboardMarkup, ReplyKeyboardRemove
-from pyasn1.type.base import Asn1ItemBase
 from sheets import check_user_id, get_user_scores
 from dotenv import load_dotenv
 from os import environ
@@ -29,7 +26,7 @@ class GetID(StatesGroup):
 
 async def start(message: types.Message, state: FSMContext):
     await state.finish()
-    await message.answer(messages.WELCOME_MESSAGE, reply_markup=ReplyKeyboardRemove())
+    await message.answer(messages.WELCOME_MESSAGE)
     await GetID.waiting_for_id.set()
 
 async def id_received(message: types.Message, state: FSMContext):
@@ -51,13 +48,12 @@ def register_handlers(dp):
     dp.register_message_handler(start, commands=['start'], state='*')
     dp.register_message_handler(id_received, state=GetID.waiting_for_id)
 
-async def scheduled(wait_for):
-    while True:
-        await asyncio.sleep(wait_for)
-        now = datetime.utcnow()
-        await bot.send_message("Nigga you good tho!")
+# async def scheduled(wait_for):
+#     while True:
+#         await asyncio.sleep(wait_for)
+#         await bot.send_message(863383312, "HELLO NEGROE YOU GOOD THO?!?!?!")
 
-async def main():
+if __name__ == '__main__':
     register_handlers(dp)
-    await asyncio.get_event_loop().create_task(scheduled(5))
+    # asyncio.get_event_loop().create_task(scheduled(5))
     executor.start_polling(dp, skip_updates=True)
