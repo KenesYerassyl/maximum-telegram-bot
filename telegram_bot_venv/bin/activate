@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/Users/Yerassyl/Desktop/Projects/MaximumTelegramBot/telegram_bot_venv"
+VIRTUAL_ENV="/Users/Yerassyl/Desktop/Projects/maximum_telegram_bot/telegram_bot_venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

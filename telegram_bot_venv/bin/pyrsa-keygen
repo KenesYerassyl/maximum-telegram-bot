@@ -1,4 +1,4 @@
-#!/Users/Yerassyl/Desktop/Projects/MaximumTelegramBot/telegram_bot_venv/bin/python3.9
+#!/Users/Yerassyl/Desktop/Projects/maximum_telegram_bot/telegram_bot_venv/bin/python3.9
 # -*- coding: utf-8 -*-
 import re
 import sys

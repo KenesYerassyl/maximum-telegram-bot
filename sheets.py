@@ -1,11 +1,11 @@
 import os.path
 
-from resources/db_controller import DBController
+from db_controller import DBController
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from dotenv import load_dotenv
 from os import environ
-from resources/credentials import get_creds
+from credentials import get_creds
 
 load_dotenv()
 
@@ -20,8 +20,8 @@ sheet = service.spreadsheets()
 
 db = DBController()
 
-def get_user_info(user_id):
-    result = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range='01.06.2021!A2:A').execute()
+def get_user_info(user_id, sheet_name):
+    result = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'{sheet_name}!A2:A').execute()
     values = result.get('values', [])
     needed_row = -1
     for row in range(len(values)):
@@ -29,13 +29,24 @@ def get_user_info(user_id):
             needed_row = row
             break
     needed_row += 2
-    result1 = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'01.06.2021!D{needed_row}:{needed_row}').execute()
-    scores = result1.get('values', [])
-    return scores[0]
-    
+    result1 = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'{sheet_name}!A{needed_row}:J{needed_row}').execute()
+    user_info = result1.get('values', [])[0]
+    result2 = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'{sheet_name}!A1:J1').execute()
+    info_names = result2.get('values', [])[0]
+
+    response = {}
+    for index in range(len(user_info)):
+        response[info_names[index]] = user_info[index]
+    return response
+
+def does_chat_exist(chat_id):
+    return  db.does_chat_exist(chat_id)
+
+def get_user_id(chat_id):
+    return db.get_user_id(chat_id)
 
 def check_user_id(user_id, chat_id):
-    result = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range='01.06.2021!A2:A').execute()
+    result = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range='A2:A').execute()
     values = result.get('values', [])
     needed_row = -1
     for row in range(len(values)):
@@ -45,9 +56,12 @@ def check_user_id(user_id, chat_id):
     if needed_row == -1:
         return False
     else:
-        does_chat_exist = db.does_chat_exist(chat_id)
-        if does_chat_exist == False:
+        if does_chat_exist(chat_id) == False:
             db.add_subscriber(chat_id, user_id)
         else:
             db.modify_user_id(chat_id, user_id)
         return True
+
+def delete_chat(chat_id):
+    db.delete_chat(chat_id)
+
