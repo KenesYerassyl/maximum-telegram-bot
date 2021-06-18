@@ -18,7 +18,7 @@ service = build('sheets', 'v4', credentials=credentials)
 
 sheet = service.spreadsheets()
 
-db = DBController()
+db = DBController("maximum_telegram_bot_db.sqlite3")
 
 def get_user_info(user_id, sheet_name):
     result = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'{sheet_name}!A2:A').execute()
@@ -57,10 +57,8 @@ def check_user_id(user_id, chat_id):
         return False
     else:
         if does_chat_exist(chat_id) == -1:
-            print("TRACE1")
             db.add_subscriber(chat_id, user_id)
         else:
-            print("TRACE2")
             db.modify_user_id(chat_id, user_id)
         return True
 
