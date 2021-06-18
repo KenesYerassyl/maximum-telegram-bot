@@ -56,9 +56,11 @@ def check_user_id(user_id, chat_id):
     if needed_row == -1:
         return False
     else:
-        if does_chat_exist(chat_id) == False:
+        if does_chat_exist(chat_id) == -1:
+            print("TRACE1")
             db.add_subscriber(chat_id, user_id)
         else:
+            print("TRACE2")
             db.modify_user_id(chat_id, user_id)
         return True
 

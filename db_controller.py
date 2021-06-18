@@ -9,7 +9,7 @@ class DBController:
 
     def __init__(self) -> None:
         self.pool = pool.ThreadedConnectionPool(
-            1, 1,
+            1, 3,
             host = environ.get("DB_HOST"), 
             database = environ.get("DB_NAME"),
             user = environ.get("DB_NAME"),
@@ -24,7 +24,10 @@ class DBController:
         connection.commit()
         self.pool.putconn(connection)
         response = -1 if len(result) == 0 else result[0]
-        return response[1]
+        if response == -1:
+            return -1
+        else:
+            return response[1]
 
     def add_subscriber(self, chat_id, user_id, status = True):
         connection = self.pool.getconn()

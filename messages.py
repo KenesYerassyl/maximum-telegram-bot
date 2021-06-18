@@ -1,6 +1,6 @@
 WELCOME_MESSAGE = "Hello there!"
 SEND_ID_MESSAGE = "Please send me the student's ID."
-NEW_ID_MESSAGE = "Send new ID"
+NEW_ID_MESSAGE = "Send me your ID"
 CHOOSE_TEST_MESSAGE = "Choose the test:"
 UNSUBSCRIBE_MESSAGE = "You have unsubscribed successfully. Bot will not send you messages anymore."
 NO_USER_ID = "Sorry, please send me your ID first."

@@ -1,4 +1,3 @@
-from aiogram.types.message import ParseMode
 from sheets import check_user_id, get_user_info, does_chat_exist, delete_chat
 from dotenv import load_dotenv
 from os import environ, read
@@ -8,6 +7,7 @@ import messages
 import asyncio
 import json
 
+from aiogram.types.message import ParseMode
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Text
@@ -37,16 +37,20 @@ async def start(message: types.Message, state: FSMContext):
     reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True)
     reply_keyboard_markup.add(messages.NEW_ID_MESSAGE, messages.CHOOSE_TEST_MESSAGE)
 
-    await message.answer(message_to_send, reply_markup=reply_keyboard_markup)
+    await ask_for_id(message.chat.id, message_to_send, reply_keyboard_markup)
     await GetID.waiting_for_id.set()
 
 async def close(message: types.Message, state: FSMContext):
+    await state.finish()
     if does_chat_exist(message.chat.id) == -1:
         await message.answer(messages.NOT_SUBSCRIBED)
     else:
         delete_chat(message.chat.id)
-        await state.finish()
         await message.answer(messages.UNSUBSCRIBE_MESSAGE, reply_markup=types.ReplyKeyboardRemove())
+
+async def ask_for_id(chat_id, message_to_send, reply_keyboard_markup=None):
+    await bot.send_message(chat_id, message_to_send, reply_markup=reply_keyboard_markup)
+
 
 async def id_received(message: types.Message, state: FSMContext):
     if check_user_id(message.text, message.chat.id) == False:
@@ -58,8 +62,7 @@ async def id_received(message: types.Message, state: FSMContext):
 
 async def test_choices(message: types.Message):
     if does_chat_exist(message.chat.id) == -1:
-        await message.answer(messages.NO_USER_ID)
-        await start(message=messages.NEW_ID_MESSAGE, state='*')
+        await ask_for_id(message.chat.id, messages.NEW_ID_MESSAGE)
     else:
         inline_keyboard = InlineKeyboardMarkup()
         with open("sheets.json", "r") as read_file:
@@ -73,8 +76,7 @@ async def test_name_received(callback_query: types.CallbackQuery):
     data = callback_query.data.split('_')
     user_id = does_chat_exist(data[2])
     if user_id == -1:
-        await bot.send_message(int(data[2]), messages.NO_USER_ID)
-        await start(message=messages.NEW_ID_MESSAGE, state='*')
+        await ask_for_id(data[2], messages.NEW_ID_MESSAGE)
     else:
         result = get_user_info(user_id, data[1])
         message_to_send = messages.show_result(data[1])
