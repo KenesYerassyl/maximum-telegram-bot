@@ -1,9 +1,9 @@
-from sheets import check_user_id, get_user_scores
+from resources/sheets import check_user_id, get_user_scores
 from dotenv import load_dotenv
 from os import environ
 
 import logging 
-import messages
+import resources/messages
 import asyncio
 
 from aiogram import Bot, Dispatcher, executor, types
@@ -35,14 +35,9 @@ async def id_received(message: types.Message, state: FSMContext):
     if does_exist == False:
         await message.answer(messages.id_failure_code(message.text))
     else:
-        scores = get_user_scores(message.text)
-        await message.answer(
-f"""{messages.id_succes_code(message.text)} 
-Kazakh Language: {scores[0]}
-History: {scores[1]}
-Computer Science: {scores[2]}
-Math: {scores[3]}
-Physics: {scores[4]}""")
+        inline_keyboard = InlineKeyboardMarkup()
+        
+
         await state.finish()
 
 def register_handlers(dp):

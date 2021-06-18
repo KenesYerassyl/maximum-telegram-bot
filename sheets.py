@@ -1,11 +1,11 @@
 import os.path
 
-from db_controller import DBController
+from resources/db_controller import DBController
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from dotenv import load_dotenv
 from os import environ
-from credentials import get_creds
+from resources/credentials import get_creds
 
 load_dotenv()
 
