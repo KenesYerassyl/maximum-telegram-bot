@@ -3,7 +3,7 @@ import messages
 import asyncio
 import json
 
-from sheets import get_user_info, does_chat_exist, get_user_id, unsubscribe_user, check_user_id
+from sheets import get_user_info, does_chat_exist, get_user_id, unsubscribe_user, check_user_id, new_sheet_released, get_all_users
 from dotenv import load_dotenv
 from os import environ, read
 
@@ -79,11 +79,11 @@ async def test_name_received(callback_query: types.CallbackQuery):
         await ask_for_id(data[2], messages.NEW_ID_MESSAGE)
     else:
         result = get_user_info(user_id, data[1])
-        message_to_send = messages.show_result(data[1])
-        for item in result.items():
-            key, value = item
-            message_to_send += f'{key}: {value}\n'
-        await bot.send_message(int(data[2]), message_to_send)
+        if result == None:
+            await bot.send_message(int(data[2]), messages.NO_TEST_DATA_FOUND)
+        else:
+            message_to_send = messages.show_result(data[1]) + get_string_from(result)
+            await bot.send_message(int(data[2]), message_to_send)
 
 def register_handlers(dp):
     dp.register_message_handler(start, commands=['start'], state='*')
@@ -93,12 +93,40 @@ def register_handlers(dp):
     dp.register_message_handler(test_choices, Text(equals=messages.CHOOSE_TEST_MESSAGE))
     dp.register_callback_query_handler(test_name_received, lambda callback_query: callback_query.data.startswith('$sheet&chatId$_'))
 
-# async def scheduled(wait_for):
-#     while True:
-#         await asyncio.sleep(wait_for)
-#         await bot.send_message(863383312, "HELLO NEGROE YOU GOOD THO?!?!?!")
+async def scheduled(wait_for):
+    while True:
+        await asyncio.sleep(wait_for)
+        if new_sheet_released() == True:
+            
+            with open("sheets.json", "r") as read_file:
+                sheets = json.load(read_file)
+            sheet_amount = len(sheets["sheets"])
+            sheets["sheets"].append(f"Тест {sheet_amount + 1}")
+
+            with open("sheets.json", "w") as write_file:
+                json.dump(sheets, write_file)
+            
+            users = get_all_users()
+            for user in users:
+                user_info = get_user_info(user["user_id"], f"Тест {sheet_amount + 1}")
+                await bot.send_message(user["chat_id"], messages.new_results(f"Тест {sheet_amount + 1}"))
+                if user_info == None:
+                    await bot.send_message(user["chat_id"], messages.NO_TEST_DATA_FOUND)
+                else:
+                    message_to_send = messages.show_result(f"Тест {sheet_amount + 1}") + get_string_from(user_info)
+                    await bot.send_message(user["chat_id"], message_to_send)
+
+def get_string_from(dict):
+    result = ""
+    for item in dict.items():
+        key, value = item
+        if value != 'N/a':
+            result += f'{key}: {value}\n'
+    return result
+
+
 
 if __name__ == '__main__':
     register_handlers(dp)
-    # asyncio.get_event_loop().create_task(scheduled(5))
+    asyncio.get_event_loop().create_task(scheduled(15))
     executor.start_polling(dp, skip_updates=True)

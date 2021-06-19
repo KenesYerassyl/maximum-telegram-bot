@@ -15,6 +15,14 @@ class DBManager:
         self.collection = self.db.subscriptions
         self.collection.create_index([('chat_id', pymongo.ASCENDING)], unique=True)
     
+    def get_all_users(self):
+        try:
+            result = self.collection.find({"status" : True})
+            return result
+        except Exception as e:
+            print(f"Finding document failed: {e}")
+            return []
+
     def does_chat_exist(self, chat_id):
         try:
             result = self.collection.find_one({"chat_id" : chat_id})

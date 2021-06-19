@@ -1,4 +1,5 @@
 import os.path
+import json
 
 from db_controller import DBManager
 from googleapiclient.discovery import build
@@ -28,16 +29,19 @@ def get_user_info(user_id, sheet_name):
         if values[row][0] == user_id:
             needed_row = row
             break
-    needed_row += 2
-    result1 = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'{sheet_name}!A{needed_row}:J{needed_row}').execute()
-    user_info = result1.get('values', [])[0]
-    result2 = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'{sheet_name}!A1:J1').execute()
-    info_names = result2.get('values', [])[0]
+    if needed_row == -1:
+        return None
+    else:
+        needed_row += 2
+        result1 = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'{sheet_name}!A{needed_row}:O{needed_row}').execute()
+        user_info = result1.get('values', [])[0]
+        result2 = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'{sheet_name}!A1:O1').execute()
+        info_names = result2.get('values', [])[0]
 
-    response = {}
-    for index in range(len(user_info)):
-        response[info_names[index]] = user_info[index]
-    return response
+        response = {}
+        for index in range(len(user_info)):
+            response[info_names[index]] = user_info[index]
+        return response
 
 def does_chat_exist(chat_id):
     return  db.does_chat_exist(chat_id)
@@ -49,7 +53,7 @@ def unsubscribe_user(chat_id):
     db.modify_status(chat_id, False)
 
 def check_user_id(user_id, chat_id):
-    result = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range='A2:A').execute()
+    result = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range='Ученики!A2:A').execute()
     values = result.get('values', [])
     needed_row = -1
     for row in range(len(values)):
@@ -65,4 +69,29 @@ def check_user_id(user_id, chat_id):
             db.modify_user(chat_id, user_id)
         return True
 
+def get_all_users():
+    return db.get_all_users()
 
+def new_sheet_released():
+    with open("sheets.json", "r") as read_file:
+        local_sheets = json.load(read_file).get("sheets")
+    sheet_amount = len(local_sheets)
+
+    result = service.spreadsheets().get(spreadsheetId=environ.get("SPREADSHEET_ID")).execute()
+    remote_sheets = result.get('sheets', '')
+    if len(remote_sheets) == sheet_amount:
+        return False
+    else:
+        found = False
+        for item in remote_sheets:
+            if item["properties"]["title"] == f"Тест {sheet_amount + 1}":
+                found = True
+                break
+        if found == False:
+            return False
+        else:
+            result1 = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'Тест {sheet_amount + 1}!P2:P2').execute()
+            if "values" in result1:
+                return result1.get('values', '')[0][0] == 'TRUE'
+            else:
+                return False
