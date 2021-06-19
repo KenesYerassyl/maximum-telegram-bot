@@ -1,11 +1,11 @@
-from sheets import check_user_id, get_user_info, does_chat_exist, delete_chat
-from dotenv import load_dotenv
-from os import environ, read
-
 import logging 
 import messages
 import asyncio
 import json
+
+from sheets import get_user_info, does_chat_exist, get_user_id, unsubscribe_user, check_user_id
+from dotenv import load_dotenv
+from os import environ, read
 
 from aiogram.types.message import ParseMode
 from aiogram import Bot, Dispatcher, executor, types
@@ -42,10 +42,10 @@ async def start(message: types.Message, state: FSMContext):
 
 async def close(message: types.Message, state: FSMContext):
     await state.finish()
-    if does_chat_exist(message.chat.id) == -1:
+    if  does_chat_exist(message.chat.id) == -1:
         await message.answer(messages.NOT_SUBSCRIBED)
     else:
-        delete_chat(message.chat.id)
+        unsubscribe_user(message.chat.id)
         await message.answer(messages.UNSUBSCRIBE_MESSAGE, reply_markup=types.ReplyKeyboardRemove())
 
 async def ask_for_id(chat_id, message_to_send, reply_keyboard_markup=None):
@@ -74,7 +74,7 @@ async def test_choices(message: types.Message):
 
 async def test_name_received(callback_query: types.CallbackQuery):
     data = callback_query.data.split('_')
-    user_id = does_chat_exist(data[2])
+    user_id = does_chat_exist(int(data[2]))["user_id"]
     if user_id == -1:
         await ask_for_id(data[2], messages.NEW_ID_MESSAGE)
     else:
