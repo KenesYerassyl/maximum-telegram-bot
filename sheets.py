@@ -1,5 +1,6 @@
 import os.path
 import json
+import socket
 
 from db_controller import DBManager
 from googleapiclient.discovery import build
@@ -15,6 +16,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 credentials = service_account.Credentials.from_service_account_info(get_creds())
 
+socket.setdefaulttimeout(600) 
 service = build('sheets', 'v4', credentials=credentials)
 
 sheet = service.spreadsheets()
@@ -82,6 +84,7 @@ def new_sheet_released():
     if len(remote_sheets) == sheet_amount:
         return False
     else:
+        print("Validation 1: New Sheet appeared.")
         found = False
         for item in remote_sheets:
             if item["properties"]["title"] == f"Тест {sheet_amount + 1}":
@@ -90,8 +93,10 @@ def new_sheet_released():
         if found == False:
             return False
         else:
+            print("Validation 2: Its name is valid for new test name.")
             result1 = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'Тест {sheet_amount + 1}!P2:P2').execute()
             if "values" in result1:
+                print("Validation 3: The cell P2:P2 has some value")
                 return result1.get('values', '')[0][0] == 'TRUE'
             else:
                 return False
