@@ -1,0 +1,15 @@
+---
+application:
+  name: "maximum-telegram-bot"
+  project: "maximum-telegram-bot"
+  organization: "QoveryCommunity"
+databases:
+- type: "MONGODB"
+  name: "maximum-telegram-bot"
+  version: "3.6"
+routers:
+- name: "main-maximum-telegram-bot"
+  routes:
+  - application_name: "maximum-telegram-bot"
+    paths:
+    - "/*"
