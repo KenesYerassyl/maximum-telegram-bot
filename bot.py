@@ -56,7 +56,7 @@ async def id_received(message: types.Message, state: FSMContext):
 
 async def test_choices(message: types.Message):
     if does_chat_exist(message.chat.id) == -1:
-        await bot.send_message(message.chat.id, messages.NO_USER_ID)
+        await bot.send_message(message.chat.id, messages.NO_USER_ID, parse_mode=ParseMode.MARKDOWN)
     else:
         inline_keyboard = InlineKeyboardMarkup()
         sheets = get_all_tests()
@@ -69,7 +69,7 @@ async def test_name_received(callback_query: types.CallbackQuery):
     data = callback_query.data.split('_')
     user_id = does_chat_exist(int(data[2]))
     if user_id == -1:
-        await bot.send_message(data[2], messages.NO_USER_ID)
+        await bot.send_message(data[2], messages.NO_USER_ID, parse_mode=ParseMode.MARKDOWN)
     else:
         print(user_id)
         print(data[1])
