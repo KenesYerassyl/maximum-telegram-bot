@@ -35,9 +35,9 @@ def get_user_info(user_id, sheet_name):
         return None
     else:
         needed_row += 2
-        result1 = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'{sheet_name}!A{needed_row}:O{needed_row}').execute()
+        result1 = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'{sheet_name}!A{needed_row}:P{needed_row}').execute()
         user_info = result1.get('values', [])[0]
-        result2 = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'{sheet_name}!A1:O1').execute()
+        result2 = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'{sheet_name}!A1:P1').execute()
         info_names = result2.get('values', [])[0]
 
         response = {}
@@ -74,29 +74,48 @@ def check_user_id(user_id, chat_id):
 def get_all_users():
     return db.get_all_users()
 
-def new_sheet_released():
-    with open("sheets.json", "r") as read_file:
-        local_sheets = json.load(read_file).get("sheets")
-    sheet_amount = len(local_sheets)
+def get_all_tests():
+    return db.get_all_tests()
 
+# remote -> Google Sheets, local -> MongoDB
+def new_sheet_released():
+    local_sheets = []
+    for item in db.get_all_tests():
+        local_sheets.append(item["test_name"])
+
+    remote_sheets = []
     result = service.spreadsheets().get(spreadsheetId=environ.get("SPREADSHEET_ID")).execute()
-    remote_sheets = result.get('sheets', '')
-    if len(remote_sheets) == sheet_amount:
-        return False
+    for item in result.get('sheets', ''):
+        if item["properties"]["title"].startswith("Тест ") == True:
+            remote_sheets.append(item["properties"]["title"])
+
+    # Check if local has test which was deleted from remote
+    # If has, delete test from local
+    for item in local_sheets:
+        if item not in remote_sheets:
+            db.delete_test(item)
+
+    if len(remote_sheets) == len(local_sheets):
+        return None
     else:
         print("Validation 1: New Sheet appeared.")
-        found = False
+        new_test_name = None
         for item in remote_sheets:
-            if item["properties"]["title"] == f"Тест {sheet_amount + 1}":
-                found = True
+            if item not in local_sheets:
+                new_test_name = item
                 break
-        if found == False:
-            return False
+        if new_test_name == None:
+            return None
         else:
-            print("Validation 2: Its name is valid for new test name.")
-            result1 = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'Тест {sheet_amount + 1}!P2:P2').execute()
+            print("Validation 2: Checking if the table is finished!")
+            result1 = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'{new_test_name}!Q2:Q2').execute()
             if "values" in result1:
-                print("Validation 3: The cell P2:P2 has some value")
-                return result1.get('values', '')[0][0] == 'TRUE'
+                print("Validation 3: The cell Q2:Q2 has some value")
+                if result1.get('values', '')[0][0] == 'TRUE':
+                    db.add_test(new_test_name)
+                    print("Validation 4: The cell has value 'TRUE'")
+                    return new_test_name
+                else:
+                    return None
             else:
-                return False
+                return None
