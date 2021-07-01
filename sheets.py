@@ -27,8 +27,10 @@ def get_user_info(user_id, sheet_name):
     result = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range=f'{sheet_name}!A2:A').execute()
     values = result.get('values', [])
     needed_row = -1
+    if values == None:
+        return None
     for row in range(len(values)):
-        if values[row][0] == user_id:
+        if values[row] != None and len(values[row]) > 0 and values[row][0] == user_id:
             needed_row = row
             break
     if needed_row == -1:
@@ -43,10 +45,12 @@ def get_user_info(user_id, sheet_name):
         response = {}
         for index in range(len(user_info)):
             response[info_names[index]] = user_info[index]
+        if len(response) == 0:
+            return None
         return response
 
 def does_chat_exist(chat_id):
-    return  db.does_chat_exist(chat_id)
+    return db.does_chat_exist(chat_id)
 
 def get_user_id(chat_id):
     return db.get_user_id(chat_id)
