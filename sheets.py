@@ -58,8 +58,10 @@ def check_user_id(user_id, chat_id):
     result = sheet.values().get(spreadsheetId=environ.get("SPREADSHEET_ID"), range='Ученики!A2:A').execute()
     values = result.get('values', [])
     needed_row = -1
+    if values == None:
+        return False
     for row in range(len(values)):
-        if values[row][0] == user_id:
+        if values[row] != None and len(values[row]) > 0 and values[row][0] == user_id:
             needed_row = row
             break
     if needed_row == -1:
