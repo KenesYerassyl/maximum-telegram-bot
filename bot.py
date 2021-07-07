@@ -31,7 +31,7 @@ async def start(message: types.Message, state: FSMContext):
     await state.finish()
     message_to_send = f"{messages.WELCOME_MESSAGE}"
     reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True)
-    reply_keyboard_markup.add(messages.NEW_ID_MESSAGE, messages.CHOOSE_TEST_MESSAGE)
+    reply_keyboard_markup.add(messages.NEW_ID_MESSAGE, messages.CHOOSE_TEST_MESSAGE, messages.SCHEDULE)
     await message.answer(message_to_send, reply_markup=reply_keyboard_markup, parse_mode=ParseMode.MARKDOWN)
 
 async def close(message: types.Message, state: FSMContext):
@@ -80,12 +80,16 @@ async def test_name_received(callback_query: types.CallbackQuery):
             message_to_send = messages.get_string_from(result)
             await bot.send_message(int(data[2]), message_to_send)
 
+async def send_schedule(message: types.Message):
+    await message.answer(environ.get("SCHEDULE_LINK"))
+
 def register_handlers(dp):
     dp.register_message_handler(start, commands=['start'], state='*')
     dp.register_message_handler(ask_for_id, Text(equals=messages.NEW_ID_MESSAGE))
     dp.register_message_handler(close, commands=['close'], state='*')
     dp.register_message_handler(id_received, state=GetID.waiting_for_id)
     dp.register_message_handler(test_choices, Text(equals=messages.CHOOSE_TEST_MESSAGE))
+    dp.register_message_handler(send_schedule, Text(equals=messages.SCHEDULE))
     dp.register_callback_query_handler(test_name_received, lambda callback_query: callback_query.data.startswith('$sheet&chatId$_'))
 
 async def scheduled(wait_for):
@@ -96,12 +100,16 @@ async def scheduled(wait_for):
             users = get_all_users()
             for user in users:
                 user_info = get_user_info(user["user_id"], new_sheet)
-                if user_info == None:
-                    await bot.send_message(user["chat_id"], messages.NO_TEST_DATA_FOUND)
-                else:
+                if user_info != None:
                     await bot.send_message(user["chat_id"], messages.new_results(new_sheet), parse_mode=ParseMode.MARKDOWN)
                     await bot.send_message(user["chat_id"], messages.get_string_from(user_info))
 
+async def make_notification(message):
+    users = get_all_users()
+    reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    reply_keyboard_markup.add(messages.NEW_ID_MESSAGE, messages.CHOOSE_TEST_MESSAGE, messages.SCHEDULE)
+    for user in users:
+        await bot.send_message(user["chat_id"], message, reply_markup=reply_keyboard_markup)
 
 
 
@@ -109,4 +117,6 @@ async def scheduled(wait_for):
 if __name__ == '__main__':
     register_handlers(dp)
     asyncio.get_event_loop().create_task(scheduled(28 * 60))
+    asyncio.get_event_loop().create_task(make_notification("Это сообщение было выслано при технических работах, прошу не обращяйте внимания."))
     executor.start_polling(dp, skip_updates=True)
+    
