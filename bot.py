@@ -117,6 +117,5 @@ async def make_notification(message):
 if __name__ == '__main__':
     register_handlers(dp)
     asyncio.get_event_loop().create_task(scheduled(28 * 60))
-    asyncio.get_event_loop().create_task(make_notification("Это сообщение было выслано при технических работах, прошу не обращяйте внимания."))
     executor.start_polling(dp, skip_updates=True)
     
