@@ -94,7 +94,7 @@ def get_suffix(day):
         return 'ші'
 
 def attendance_result(check, day, month, full_name):
-    attendance = f"{check} минутқа кешігіп келді."
+    attendance = f"{check} минутқа кешігіп келді"
     if check == '+':
         attendance = "қатысты"
     elif check == '-':

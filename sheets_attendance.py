@@ -40,6 +40,3 @@ def check_attendance(user_id, month, day):
     except Exception as e:
         print(f"Error in checking attendance: {e}")
         return None
-
-# result = sheet.values().get(spreadsheetId=sheet_id, range='1:1').execute()
-# print(result)
