@@ -24,19 +24,31 @@ def check_attendance(user_id, month, day):
             general_row = sheet.values().get(spreadsheetId=sheet_id, range='1:1').execute()
             general_info = general_row.get('values', [])[0]
 
-            month_index = 0
-            while month_index < len(general_info):
-                if general_info[month_index] == messages.MONTH_RU[month]:
+            #finding the start of a month
+            start_index = 0
+            while start_index < len(general_info):
+                if general_info[start_index] == messages.MONTH_RU[month]:
                     break
                 else:
-                    month_index += 1
-            index = month_index + 1
-            while index < len(general_info):
+                    start_index += 1
+            
+            index = start_index + 1
+
+            #finding the end of a month
+            while index < len(general_info) and general_info[index].isdigit():
+                index += 1
+            finish_index = min(len(general_info)-1, index)
+
+            #checking the range 
+            index = start_index + 1
+            found = False
+            while index <= finish_index:
                 if general_info[index] == day:
+                    found = True
                     break
                 else:
                     index += 1
-            return (user_info[index], user_info[1])
+            return (user_info[index], user_info[1]) if found else None
     except Exception as e:
         print(f"Error in checking attendance: {e}")
         return None
