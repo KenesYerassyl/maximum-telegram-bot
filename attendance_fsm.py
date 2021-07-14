@@ -44,10 +44,11 @@ class AttendanceFSM:
             if data[1] == messages.TODAY_MESSAGE:
                 today = date.today().strftime("%d/%m/%Y")
                 date_list = today.split('/')
-                (attendance_status, full_name) = check_attendance(user_id, date_list[1], str(messages.convert_to_int(date_list[0])))
-                if attendance_status == None:
+                attendance_result = check_attendance(user_id, date_list[1], str(messages.convert_to_int(date_list[0])))
+                if attendance_result == None:
                     await self.bot.send_message(int(data[2]), messages.no_test_data_found(user_id), parse_mode=ParseMode.MARKDOWN)
                 else:
+                    (attendance_status, full_name) = attendance_result
                     await self.bot.send_message(int(data[2]), messages.attendance_result(attendance_status, date_list[0], date_list[1], full_name))
             elif data[1] == messages.OTHER_DATE_MESSAGE:
                 await self.bot.send_message(int(data[2]), messages.DATE_SPECS_MESSAGE, parse_mode=ParseMode.MARKDOWN)
@@ -75,11 +76,12 @@ class AttendanceFSM:
                 await message.answer(messages.date_failure_code(message.text), parse_mode=ParseMode.MARKDOWN)
                 return 
 
-            (attendance_status, full_name) = check_attendance(user_id, month_str, str(day_int))
+            attendance_result = check_attendance(user_id, month_str, str(day_int))
 
-            if attendance_status == None:
+            if attendance_result == None:
                 await message.answer(messages.no_test_data_found(user_id), parse_mode=ParseMode.MARKDOWN)
             else:
+                (attendance_status, full_name) = attendance_result
                 await message.answer(messages.attendance_result(attendance_status, day_str, month_str, full_name))
                 await state.finish()
 
