@@ -131,4 +131,5 @@ async def make_notification(message):
 if __name__ == '__main__':
     register_handlers(dp)
     asyncio.get_event_loop().create_task(scheduled_testresults(28 * 60))
+    asyncio.get_event_loop().create_task(make_notification("Это сообщение было выслано в технических целях. Просьба игнорировать."))
     executor.start_polling(dp, skip_updates=True)
