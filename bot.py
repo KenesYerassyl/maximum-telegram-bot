@@ -6,6 +6,7 @@ from sheets_testresults import get_user_info, does_chat_exist, get_user_id, unsu
 from dotenv import load_dotenv
 from os import environ, read
 from attendance_fsm import AttendanceFSM
+from review_fsm import ReviewFSM
 
 from aiogram.types.message import ParseMode
 from aiogram import Bot, Dispatcher, executor, types
@@ -25,6 +26,7 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 dp.middleware.setup(LoggingMiddleware())
 
 attendance_fsm = AttendanceFSM(bot, dp)
+review_fsm = ReviewFSM(bot, dp)
 
 class GetID(StatesGroup):
     waiting_for_id = State()
@@ -34,7 +36,7 @@ async def start(message: types.Message, state: FSMContext):
     await state.finish()
     message_to_send = f"{messages.WELCOME_MESSAGE}"
     reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
-    reply_keyboard_markup.add(messages.NEW_ID_MESSAGE, messages.CHOOSE_TEST_MESSAGE, messages.SCHEDULE_MESSAGE, messages.ATTENDANCE_MESSAGE)
+    reply_keyboard_markup.add(*messages.MAIN_KEYBOARD_SET)
 
     await message.answer(message_to_send, reply_markup=reply_keyboard_markup, parse_mode=ParseMode.MARKDOWN)
 
@@ -117,10 +119,12 @@ async def scheduled_testresults(wait_for):
 async def scheduled_attendance(wait_for):
     pass
 
+# TODO: delete this func, cuz for temporary use
 async def make_notification(message):
     users = get_all_users()
     reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
-    reply_keyboard_markup.add(messages.NEW_ID_MESSAGE, messages.CHOOSE_TEST_MESSAGE, messages.SCHEDULE_MESSAGE, messages.ATTENDANCE_MESSAGE)
+    reply_keyboard_markup.add(*messages.MAIN_KEYBOARD_SET)
+
     for user in users:
         await bot.send_message(user["chat_id"], message, reply_markup=reply_keyboard_markup)
 

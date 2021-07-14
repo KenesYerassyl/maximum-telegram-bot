@@ -1,4 +1,3 @@
-from attr.setters import convert
 import messages
 
 from sheets_attendance import check_attendance
@@ -80,6 +79,7 @@ class AttendanceFSM:
 
             if attendance_result == None:
                 await message.answer(messages.no_test_data_found(user_id), parse_mode=ParseMode.MARKDOWN)
+                await state.finish()
             else:
                 (attendance_status, full_name) = attendance_result
                 await message.answer(messages.attendance_result(attendance_status, day_str, month_str, full_name))
