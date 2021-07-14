@@ -76,10 +76,12 @@ def get_all_tests():
 # remote -> Google Sheets, local -> MongoDB
 def new_sheet_released():
     try:
+        #taking tests from mongo DB
         local_sheets = []
         for item in db.get_all_tests():
             local_sheets.append(item["test_name"])
 
+        #taking tests from Google Sheets 
         remote_sheets = []
         result = sheet.get(spreadsheetId=sheet_id).execute()
         for item in result.get('sheets', ''):
@@ -88,9 +90,15 @@ def new_sheet_released():
 
         # Check if local has test which was deleted from remote
         # If has, delete test from local
+        extra_sheets = []
         for item in local_sheets:
             if item not in remote_sheets:
-                db.delete_test(item)
+                extra_sheets.append(item)
+
+        for item in extra_sheets:
+            db.delete_test(item)
+            local_sheets.remove(item)
+
 
         if len(remote_sheets) == len(local_sheets):
             return None
