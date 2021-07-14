@@ -81,7 +81,7 @@ def new_sheet_released():
             local_sheets.append(item["test_name"])
 
         remote_sheets = []
-        result = sheet.service.spreadsheets().get(spreadsheetId=sheet_id).execute()
+        result = sheet.get(spreadsheetId=sheet_id).execute()
         for item in result.get('sheets', ''):
             if item["properties"]["title"].startswith("Тест ") == True:
                 remote_sheets.append(item["properties"]["title"])
@@ -117,5 +117,5 @@ def new_sheet_released():
                 else:
                     return None
     except Exception as e:
-        print(f"Error in new sheer release: {e}")
+        print(f"Error in new sheet release: {e}")
         return None

@@ -1,3 +1,4 @@
+from sheets_attendance import check_attendance
 from aiogram.types.base import Boolean
 
 
@@ -92,8 +93,14 @@ def get_suffix(day):
     else:
         return 'ші'
 
-def attendance_result(check: bool, day, month, full_name):
-    attendance = "қатысты" if check else "қатыспады"
+def attendance_result(check, day, month, full_name):
+    attendance = f"{check} минутқа кешігіп келді."
+    if check == '+':
+        attendance = "қатысты"
+    elif check == '-':
+        attendance = "қатыспады"
+    elif check == '=':
+        return f"{convert_to_int(day)}-{get_suffix(day)} {MONTH_KZ[month]} күні {full_name} сабақтан сұранып кетті."    
     return f"{convert_to_int(day)}-{get_suffix(day)} {MONTH_KZ[month]} күні {full_name} сабаққа {attendance}."
 
 def date_failure_code(date):

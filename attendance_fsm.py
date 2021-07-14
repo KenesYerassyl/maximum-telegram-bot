@@ -34,7 +34,7 @@ class AttendanceFSM:
                 InlineKeyboardButton(messages.OTHER_DATE_MESSAGE, callback_data=f'$name&chatId$_{messages.OTHER_DATE_MESSAGE}_{message.chat.id}')
             )
             await message.answer(messages.SPECIFY_ATTENDANCE_DATE_MESSAGE, reply_markup=inline_keyboard)
-    
+ 
     async def attendance_date_received(self, callback_query: types.CallbackQuery):
         data = callback_query.data.split('_')
         user_id = does_chat_exist(int(data[2]))
@@ -44,15 +44,11 @@ class AttendanceFSM:
             if data[1] == messages.TODAY_MESSAGE:
                 today = date.today().strftime("%d/%m/%Y")
                 date_list = today.split('/')
-                attendance_list = check_attendance(user_id, date_list[1])
-                if attendance_list == None:
+                (attendance_status, full_name) = check_attendance(user_id, date_list[1], str(messages.convert_to_int(date_list[0])))
+                if attendance_status == None:
                     await self.bot.send_message(int(data[2]), messages.no_test_data_found(user_id), parse_mode=ParseMode.MARKDOWN)
                 else:
-                    if messages.convert_to_int(date_list[0]) > len(attendance_list)-2:
-                        await self.bot.send_message(int(data[2]), messages.no_test_data_found(user_id), parse_mode=ParseMode.MARKDOWN)
-                    else:
-                        check = attendance_list[messages.convert_to_int(date_list[0]) + 1] == '+'
-                        await self.bot.send_message(int(data[2]), messages.attendance_result(check, date_list[0], date_list[1], attendance_list[1]))
+                    await self.bot.send_message(int(data[2]), messages.attendance_result(attendance_status, date_list[0], date_list[1], full_name))
             elif data[1] == messages.OTHER_DATE_MESSAGE:
                 await self.bot.send_message(int(data[2]), messages.DATE_SPECS_MESSAGE, parse_mode=ParseMode.MARKDOWN)
                 await GetDate.waiting_for_date.set()
@@ -79,17 +75,13 @@ class AttendanceFSM:
                 await message.answer(messages.date_failure_code(message.text), parse_mode=ParseMode.MARKDOWN)
                 return 
 
-            attendance_list = check_attendance(user_id, month_str)
+            (attendance_status, full_name) = check_attendance(user_id, month_str, str(day_int))
 
-            if attendance_list == None:
+            if attendance_status == None:
                 await message.answer(messages.no_test_data_found(user_id), parse_mode=ParseMode.MARKDOWN)
             else:
-                if day_int > len(attendance_list)-2:
-                    await message.answer(messages.no_test_data_found(user_id), parse_mode=ParseMode.MARKDOWN)
-                else:
-                    check = attendance_list[day_int + 1] == '+'
-                    await message.answer(messages.attendance_result(check, day_str, month_str, attendance_list[1]))
-                    await state.finish()
+                await message.answer(messages.attendance_result(attendance_status, day_str, month_str, full_name))
+                await state.finish()
 
 
     
