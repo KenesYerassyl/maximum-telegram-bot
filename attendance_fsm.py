@@ -27,6 +27,7 @@ class AttendanceFSM:
         if does_chat_exist(message.chat.id) == -1:
             await self.bot.send_message(message.chat.id, messages.NO_USER_ID_MESSAGE, parse_mode=ParseMode.MARKDOWN)
         else:
+
             inline_keyboard = InlineKeyboardMarkup()
             inline_keyboard.row(
                 InlineKeyboardButton(messages.TODAY_MESSAGE, callback_data=f'$name&chatId$_{messages.TODAY_MESSAGE}_{message.chat.id}'),
@@ -50,7 +51,11 @@ class AttendanceFSM:
                     (attendance_status, full_name) = attendance_result
                     await self.bot.send_message(int(data[2]), messages.attendance_result(attendance_status, date_list[0], date_list[1], full_name))
             elif data[1] == messages.OTHER_DATE_MESSAGE:
-                await self.bot.send_message(int(data[2]), messages.DATE_SPECS_MESSAGE, parse_mode=ParseMode.MARKDOWN)
+                
+                reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True)
+                reply_keyboard_markup.add(messages.BACK_MESSAGE)
+
+                await self.bot.send_message(int(data[2]), messages.DATE_SPECS_MESSAGE, parse_mode=ParseMode.MARKDOWN, reply_markup=reply_keyboard_markup)
                 await GetDate.waiting_for_date.set()
 
     async def date_received(self, message: types.Message, state: FSMContext):
@@ -77,12 +82,15 @@ class AttendanceFSM:
 
             attendance_result = check_attendance(user_id, month_str, str(day_int))
 
+            reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+            reply_keyboard_markup.add(*messages.MAIN_KEYBOARD_SET)
+
             if attendance_result == None:
-                await message.answer(messages.no_test_data_found(user_id), parse_mode=ParseMode.MARKDOWN)
+                await message.answer(messages.no_test_data_found(user_id), parse_mode=ParseMode.MARKDOWN, reply_markup=reply_keyboard_markup)
                 await state.finish()
             else:
                 (attendance_status, full_name) = attendance_result
-                await message.answer(messages.attendance_result(attendance_status, day_str, month_str, full_name))
+                await message.answer(messages.attendance_result(attendance_status, day_str, month_str, full_name), reply_markup=reply_keyboard_markup)
                 await state.finish()
 
 

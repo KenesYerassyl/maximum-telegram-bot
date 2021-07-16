@@ -31,7 +31,11 @@ class ReviewFSM:
 
 
     async def review_message(self, message: types.Message):
-        await message.answer(messages.REVIEW_CONTENT_MESSAGE, reply_markup=types.ReplyKeyboardRemove())
+    
+        reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True)
+        reply_keyboard_markup.add(messages.BACK_MESSAGE)
+
+        await message.answer(messages.REVIEW_CONTENT_MESSAGE, reply_markup=reply_keyboard_markup)
         await GetReview.waiting_for_review.set()
 
     async def review_received(self, message: types.Message, state: FSMContext):
@@ -44,6 +48,7 @@ class ReviewFSM:
         
         reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=5)
         reply_keyboard_markup.add(*messages.REVIEW_ASSESSMENT_KEYBOARD_SET)
+        reply_keyboard_markup.add(messages.BACK_MESSAGE)
 
         await message.answer(messages.REVIEW_ASSESSMENT_MESSAGE, reply_markup=reply_keyboard_markup)
         await GetReview.waiting_for_assessment.set()
@@ -59,8 +64,8 @@ class ReviewFSM:
             assessment = user_data.get('assessment')
             if review != None and name != None and assessment != None:
 
-                reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True)
-                reply_keyboard_markup.add(messages.REVIEW_ACCEPT_MESSAGE, messages.REVIEW_CANCEL_MESSAGE)
+                reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+                reply_keyboard_markup.add(messages.REVIEW_ACCEPT_MESSAGE, messages.REVIEW_CANCEL_MESSAGE, messages.BACK_MESSAGE)
 
                 await message.answer(f"{messages.construct_review(name, review, assessment)}\n\n{messages.REVIEW_CONFIRMATION_MESSAGE}", reply_markup=reply_keyboard_markup, parse_mode=ParseMode.MARKDOWN)
                 await GetReview.waiting_for_confirmation.set()

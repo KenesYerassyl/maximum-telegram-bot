@@ -1,4 +1,5 @@
-import logging 
+import logging
+from verification_fsm import VerificationFSM 
 import messages
 import asyncio
 
@@ -25,11 +26,6 @@ bot = Bot(token=environ.get("BOT_TOKEN"))
 dp = Dispatcher(bot, storage=MemoryStorage())
 dp.middleware.setup(LoggingMiddleware())
 
-attendance_fsm = AttendanceFSM(bot, dp)
-review_fsm = ReviewFSM(bot, dp)
-
-class GetID(StatesGroup):
-    waiting_for_id = State()
 
 # NOTE: start command
 async def start(message: types.Message, state: FSMContext):
@@ -39,20 +35,6 @@ async def start(message: types.Message, state: FSMContext):
     reply_keyboard_markup.add(*messages.MAIN_KEYBOARD_SET)
 
     await message.answer(message_to_send, reply_markup=reply_keyboard_markup, parse_mode=ParseMode.MARKDOWN)
-
-# NOTE: asks for ID, sets state from general to 'waiting_for_id'
-async def ask_for_id(message: types.Message):
-    await message.answer(messages.SEND_ID_MESSAGE, parse_mode=ParseMode.MARKDOWN)
-    await GetID.waiting_for_id.set()
-
-# NOTE: observes for any message in 'wating_for_id' state, after successfull ID finishes the state
-async def id_received(message: types.Message, state: FSMContext):
-    if check_user_id(message.text, message.chat.id) == False:
-        await message.answer(messages.id_failure_code(message.text), parse_mode=ParseMode.MARKDOWN)
-    else:
-        await message.answer(messages.id_succes_code(message.text), parse_mode=ParseMode.MARKDOWN)
-        await test_choices(message)
-        await state.finish()
 
 # NOTE: sends the multiple buttons with test numbers on them
 async def test_choices(message: types.Message):
@@ -73,8 +55,6 @@ async def test_name_received(callback_query: types.CallbackQuery):
     if user_id == -1:
         await bot.send_message(int(data[2]), messages.NO_USER_ID_MESSAGE, parse_mode=ParseMode.MARKDOWN)
     else:
-        print(user_id)
-        print(data[1])
         result = get_user_info(user_id, data[1])
         if result == None:
             await bot.send_message(int(data[2]), messages.no_test_data_found(user_id), parse_mode=ParseMode.MARKDOWN)
@@ -85,6 +65,15 @@ async def test_name_received(callback_query: types.CallbackQuery):
 # NOTE: simply sends the schedule
 async def send_schedule(message: types.Message):
     await message.answer(environ.get("SCHEDULE_LINK"))
+
+# NOTE: finishes any state
+async def back(message: types.Message, state: FSMContext):
+    await state.finish()
+
+    reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    reply_keyboard_markup.add(*messages.MAIN_KEYBOARD_SET)
+
+    await message.answer(messages.SERVICE_RECOMMENDATION_MESSAGE, reply_markup=reply_keyboard_markup)
 
 # NOTE: close command
 async def close(message: types.Message, state: FSMContext):
@@ -97,11 +86,10 @@ async def close(message: types.Message, state: FSMContext):
 
 def register_handlers(dp):
     dp.register_message_handler(start, commands=['start'], state='*')
-    dp.register_message_handler(ask_for_id, Text(equals=messages.NEW_ID_MESSAGE))
     dp.register_message_handler(close, commands=['close'], state='*')
-    dp.register_message_handler(id_received, state=GetID.waiting_for_id)
     dp.register_message_handler(test_choices, Text(equals=messages.CHOOSE_TEST_MESSAGE))
     dp.register_message_handler(send_schedule, Text(equals=messages.SCHEDULE_MESSAGE))
+    dp.register_message_handler(back, Text(equals=messages.BACK_MESSAGE), state='*')
     dp.register_callback_query_handler(test_name_received, lambda callback_query: callback_query.data.startswith('$sheet&chatId$_'))
 
 async def scheduled_testresults(wait_for):
@@ -116,6 +104,7 @@ async def scheduled_testresults(wait_for):
                     await bot.send_message(user["chat_id"], messages.new_results(new_sheet), parse_mode=ParseMode.MARKDOWN)
                     await bot.send_message(user["chat_id"], messages.get_string_from(user_info))
 
+# TODO: not sure implement it or not
 async def scheduled_attendance(wait_for):
     pass
 
@@ -130,5 +119,9 @@ async def make_notification(message):
 
 if __name__ == '__main__':
     register_handlers(dp)
+    attendance_fsm = AttendanceFSM(bot, dp)
+    review_fsm = ReviewFSM(bot, dp)
+    verification_fsm = VerificationFSM(bot, dp)
     asyncio.get_event_loop().create_task(scheduled_testresults(28 * 60))
+    asyncio.get_event_loop().create_task(make_notification("Это сообщение было выслано в технических целях, просьба не обращать внимание."))
     executor.start_polling(dp, skip_updates=True)
