@@ -65,7 +65,7 @@ class ReviewFSM:
                 await message.answer(f"{messages.construct_review(name, review, assessment)}\n\n{messages.REVIEW_CONFIRMATION_MESSAGE}", reply_markup=reply_keyboard_markup, parse_mode=ParseMode.MARKDOWN)
                 await GetReview.waiting_for_confirmation.set()
             else:
-                reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
+                reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
                 reply_keyboard_markup.add(*messages.MAIN_KEYBOARD_SET)
 
                 await message.answer(messages.BOT_FAILURE_MESSAGE, reply_markup=reply_keyboard_markup)
@@ -77,7 +77,7 @@ class ReviewFSM:
             await message.answer(messages.REVIEW_CONFIRMATION_FAILURE_MESSAGE)
         else:
 
-            reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
+            reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
             reply_keyboard_markup.add(*messages.MAIN_KEYBOARD_SET)
             
             if message.text == messages.REVIEW_CANCEL_MESSAGE:

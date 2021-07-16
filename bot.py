@@ -35,7 +35,7 @@ class GetID(StatesGroup):
 async def start(message: types.Message, state: FSMContext):
     await state.finish()
     message_to_send = f"{messages.WELCOME_MESSAGE}"
-    reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
+    reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     reply_keyboard_markup.add(*messages.MAIN_KEYBOARD_SET)
 
     await message.answer(message_to_send, reply_markup=reply_keyboard_markup, parse_mode=ParseMode.MARKDOWN)
@@ -122,7 +122,7 @@ async def scheduled_attendance(wait_for):
 # TODO: delete this func, cuz for temporary use
 async def make_notification(message):
     users = get_all_users()
-    reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
+    reply_keyboard_markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     reply_keyboard_markup.add(*messages.MAIN_KEYBOARD_SET)
 
     for user in users:
