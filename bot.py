@@ -123,5 +123,4 @@ if __name__ == '__main__':
     review_fsm = ReviewFSM(bot, dp)
     verification_fsm = VerificationFSM(bot, dp)
     asyncio.get_event_loop().create_task(scheduled_testresults(28 * 60))
-    asyncio.get_event_loop().create_task(make_notification("Это сообщение было выслано в технических целях, просьба не обращать внимание."))
     executor.start_polling(dp, skip_updates=True)
