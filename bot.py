@@ -87,7 +87,7 @@ async def close(message: types.Message, state: FSMContext):
 def register_handlers(dp):
     dp.register_message_handler(start, commands=['start'], state='*')
     dp.register_message_handler(close, commands=['close'], state='*')
-    dp.register_message_handler(test_choices, Text(equals=messages.CHOOSE_TEST_MESSAGE))
+    dp.register_message_handler(test_choices, Text(equals=messages.SHOW_TEST_MESSAGE))
     dp.register_message_handler(send_schedule, Text(equals=messages.SCHEDULE_MESSAGE))
     dp.register_message_handler(back, Text(equals=messages.BACK_MESSAGE), state='*')
     dp.register_callback_query_handler(test_name_received, lambda callback_query: callback_query.data.startswith('$sheet&chatId$_'))
